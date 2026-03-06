@@ -6,3 +6,4 @@ __pycache__/
 *.log
 
 run_*.log
+query
