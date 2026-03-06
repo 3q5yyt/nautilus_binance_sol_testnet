@@ -1,0 +1,17 @@
+[Unit]
+Description=Nautilus Binance SOL Testnet Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/solbot/nautilus_binance_sol_testnet
+ExecStart=/opt/solbot/nautilus_binance_sol_testnet/deploy/run_service.sh
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
