@@ -6,21 +6,30 @@ $ErrorActionPreference = "Stop"
 
 $ProjectDir = (Resolve-Path (Join-Path $PSScriptRoot "..\\..")).Path
 $PythonExe = Join-Path $ProjectDir ".venv\\Scripts\\python.exe"
+$GitCandidates = @(
+    "C:\Program Files\Git\cmd\git.exe",
+    "C:\Program Files\Git\bin\git.exe",
+    "C:\ProgramData\chocolatey\bin\git.exe"
+)
+$GitExe = $GitCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 Set-Location $ProjectDir
 
 if (-not (Test-Path (Join-Path $ProjectDir ".git"))) {
     throw "Not a git repository: $ProjectDir"
 }
-
-git fetch --all --prune
-
-$CurrentBranch = (git rev-parse --abbrev-ref HEAD).Trim()
-if ($CurrentBranch -ne $Branch) {
-    git checkout $Branch
+if (-not $GitExe) {
+    throw "git.exe not found in common paths."
 }
 
-git pull --ff-only origin $Branch
+& $GitExe fetch --all --prune
+
+$CurrentBranch = (& $GitExe rev-parse --abbrev-ref HEAD).Trim()
+if ($CurrentBranch -ne $Branch) {
+    & $GitExe checkout $Branch
+}
+
+& $GitExe pull --ff-only origin $Branch
 
 if (-not (Test-Path $PythonExe)) {
     py -3 -m venv .venv
