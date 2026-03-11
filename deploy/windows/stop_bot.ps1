@@ -5,9 +5,9 @@ $PythonExe = (Join-Path $ProjectDir ".venv\\Scripts\\python.exe").ToLower()
 $RunnerScript = (Join-Path $PSScriptRoot "bot_runner.ps1").ToLower()
 
 $pythonTargets = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object {
-    $_.ExecutablePath -and $_.CommandLine -and
-    $_.ExecutablePath.ToLower() -eq $PythonExe -and
-    $_.CommandLine -match "run_testnet\\.py"
+    $_.CommandLine -and
+    $_.CommandLine.ToLower().Contains($PythonExe) -and
+    $_.CommandLine -match '(?i)\brun_testnet\.py\b'
 }
 
 $runnerTargets = Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object {

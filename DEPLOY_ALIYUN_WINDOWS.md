@@ -45,12 +45,34 @@ Required:
 - `BINANCE_FUTURES_TESTNET_API_KEY`
 - `BINANCE_FUTURES_TESTNET_API_SECRET`
 
+If Binance gives you an Ed25519 private key, keep it on one line with
+literal `\n` escapes. Do not paste a multi-line PEM block directly into
+`.env`.
+
 Recommended:
 - `BINANCE_TIMESTAMP_OFFSET_MS=-1500`
 - `BINANCE_USER_WS_KEEPALIVE_SECS=1800`
 
 Optional:
 - `BINANCE_PROXY_URL=http://127.0.0.1:7890`
+
+Before debugging `-2015 Invalid API-key, IP, or permissions`, compare the
+local and ECS `.env` fingerprints:
+
+Local:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\print_env_fingerprints.ps1 -EnvPath .\.env
+```
+
+On ECS:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\solbot\nautilus_binance_sol_testnet\deploy\windows\print_env_fingerprints.ps1 -EnvPath C:\solbot\nautilus_binance_sol_testnet\.env
+```
+
+For the same variable, both sides must have the same `len` and the same
+`sha256`.
 
 ## 5) Manual smoke test
 

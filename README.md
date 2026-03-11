@@ -35,6 +35,9 @@ Fill `.env` with Binance testnet API keys:
 - `BINANCE_FUTURES_TESTNET_API_KEY`
 - `BINANCE_FUTURES_TESTNET_API_SECRET`
 
+If Binance gives you an Ed25519 private key, keep it as a single line with
+literal `\n` escapes inside `.env`. Do not paste a raw multi-line PEM block.
+
 If you hit Binance `-1021` timestamp errors, set:
 
 - `BINANCE_TIMESTAMP_OFFSET_MS=-1500`
@@ -46,6 +49,16 @@ If needed, you can tune user stream keepalive interval:
 If your network path to Binance is unstable, you can set:
 
 - `BINANCE_PROXY_URL=http://127.0.0.1:7890`
+
+Before debugging `-2015 Invalid API-key, IP, or permissions`, print the
+credential fingerprints and compare local vs server:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\print_env_fingerprints.ps1 -EnvPath .\.env
+```
+
+For the same variable, both sides must have the same `len` and the same
+`sha256`.
 
 ## 3) Run
 

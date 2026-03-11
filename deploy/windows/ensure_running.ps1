@@ -10,9 +10,9 @@ $hasLock = $false
 
 function Get-PythonTargets {
     Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object {
-        $_.ExecutablePath -and $_.CommandLine -and
-        $_.ExecutablePath.ToLower() -eq $PythonExe -and
-        $_.CommandLine -match "run_testnet\\.py"
+        $_.CommandLine -and
+        $_.CommandLine.ToLower().Contains($PythonExe) -and
+        $_.CommandLine -match '(?i)\brun_testnet\.py\b'
     }
 }
 
