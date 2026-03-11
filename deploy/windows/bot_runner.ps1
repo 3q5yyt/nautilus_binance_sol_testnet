@@ -34,16 +34,13 @@ try {
     $stdoutLog = Join-Path $LogDir "bot_$ts.stdout.log"
     $stderrLog = Join-Path $LogDir "bot_$ts.stderr.log"
 
-    $proc = Start-Process `
-        -FilePath $PythonExe `
-        -ArgumentList "run_testnet.py" `
-        -WorkingDirectory $ProjectDir `
-        -WindowStyle Hidden `
-        -RedirectStandardOutput $stdoutLog `
-        -RedirectStandardError $stderrLog `
-        -PassThru
-
-    Wait-Process -Id $proc.Id
+    Push-Location $ProjectDir
+    try {
+        & $PythonExe "run_testnet.py" 1>> $stdoutLog 2>> $stderrLog
+    }
+    finally {
+        Pop-Location
+    }
 }
 finally {
     if ($hasLock) {
