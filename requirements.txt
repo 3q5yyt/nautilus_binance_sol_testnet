@@ -1,3 +1,2 @@
-nautilus_trader[binance]
+nautilus_trader==1.224.0
 python-dotenv>=1.0.1
-
