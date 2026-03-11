@@ -22,16 +22,53 @@ function Get-RunnerTargets {
     }
 }
 
-function Stop-BotTargets {
-    $pythonTargets = @(Get-PythonTargets)
-    $runnerTargets = @(Get-RunnerTargets)
-    foreach ($p in @($pythonTargets) + @($runnerTargets)) {
-        Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+function Get-BotSnapshot {
+    $pythonTargets = @(Get-PythonTargets | Sort-Object ProcessId)
+    $runnerTargets = @(Get-RunnerTargets | Sort-Object ProcessId)
+
+    $pythonIds = @{}
+    $runnerIds = @{}
+
+    foreach ($p in $pythonTargets) {
+        $pythonIds[$p.ProcessId] = $true
     }
-    Start-Sleep -Seconds 2
+    foreach ($p in $runnerTargets) {
+        $runnerIds[$p.ProcessId] = $true
+    }
+
+    $rootPythonTargets = @($pythonTargets | Where-Object {
+        -not $pythonIds.ContainsKey($_.ParentProcessId) -and
+        -not $runnerIds.ContainsKey($_.ParentProcessId)
+    } | Sort-Object ProcessId)
+
+    $healthy = (
+        $runnerTargets.Count -eq 1 -and
+        $rootPythonTargets.Count -eq 0 -and
+        $pythonTargets.Count -ge 1 -and
+        $pythonTargets.Count -le 2
+    )
+
     return @{
-        Python = $pythonTargets.Count
-        Runner = $runnerTargets.Count
+        Python = $pythonTargets
+        Runner = $runnerTargets
+        RootPython = $rootPythonTargets
+        Healthy = $healthy
+    }
+}
+
+function Stop-BotTargets {
+    $snapshot = Get-BotSnapshot
+    $rootTargets = @($snapshot.Runner + $snapshot.RootPython | Sort-Object ProcessId -Unique)
+
+    foreach ($p in $rootTargets) {
+        taskkill /PID $p.ProcessId /T /F | Out-Null
+    }
+
+    Start-Sleep -Seconds 2
+
+    return @{
+        Python = $snapshot.Python.Count
+        Runner = $snapshot.Runner.Count
     }
 }
 
@@ -53,11 +90,10 @@ try {
             Write-Output ("Bot was not running. Cleaned python={0}, runner={1}, then started a new runner." -f $stopped.Python, $stopped.Runner)
         }
         else {
-            $pythonTargets = @(Get-PythonTargets)
-            $runnerTargets = @(Get-RunnerTargets)
+            $snapshot = Get-BotSnapshot
 
-            if ($pythonTargets.Count -eq 1 -and $runnerTargets.Count -eq 1) {
-                Write-Output ("Bot runtime healthy. Runner={0}, Python={1}" -f $runnerTargets[0].ProcessId, $pythonTargets[0].ProcessId)
+            if ($snapshot.Healthy) {
+                Write-Output ("Bot runtime healthy. Runner={0}, PythonCount={1}" -f $snapshot.Runner[0].ProcessId, $snapshot.Python.Count)
             }
             else {
                 $stopped = Stop-BotTargets
